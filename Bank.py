@@ -1,5 +1,7 @@
 import random as rnd
 import datetime
+import os
+import pickle
 
 
 class User:
@@ -49,16 +51,23 @@ class Bank:
         self.registered_users = []
         self.bank_logs = []
 
-    def retrieve_users(self, path):
+    def retrieve_users(self, path_to_file):
         """
         Should read the csv file that contains the user informations and load them into registered users list
 
         Update 1: Use pickle
         """
-        pass
+        with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
+            self.registered_users = pickle.load(f)
 
-    def save_users(self, path):
-        pass
+    def save_users(self, path_to_file):
+        try:
+            os.makedirs(path_to_file)
+        except OSError:
+            print("The data directory already exists")
+
+        with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
+            pickle.dump(self.registered_users, f)
 
     def create_user(self, name, initial_deposit):
         new_user = User(name, initial_deposit)

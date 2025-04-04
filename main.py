@@ -11,23 +11,20 @@ print("")
 print("")
 print("")
 
+bank.save_users("bank/")
 
-bank.send_money(user1, user2, 20)
-bank.send_money(user1, user2, 10)
+bank.registered_users = []
+
+bank.retrieve_users("bank/")
+
+for usr in bank.registered_users:
+    print(usr)
 
 # bank.print_bank_logs()
 
 # print(user1.export_acc())
 # print("")
 # print(user2.export_acc())
-
-with open("bank_details.pkl", "wb") as f:
-    pickle.dump(user1.export_acc(), f)
-f.close()
-
-with open("bank_details.pkl", "rb") as f:
-    loaded_info = pickle.load(f)
-    print(loaded_info)
 
 
 # bank.send_money(user1, user2, 20)
