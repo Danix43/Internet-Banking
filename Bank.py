@@ -51,16 +51,15 @@ class Bank:
         self.registered_users = []
         self.bank_logs = []
 
-    def retrieve_users(self, path_to_file):
+    def retrieve_data(self, path_to_file):
         """
         Should read the csv file that contains the user informations and load them into registered users list
-
-        Update 1: Use pickle
         """
         with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
             self.registered_users = pickle.load(f)
+            self.bank_logs = pickle.load(f)
 
-    def save_users(self, path_to_file):
+    def save_data(self, path_to_file):
         try:
             os.makedirs(path_to_file)
         except OSError:
@@ -68,6 +67,7 @@ class Bank:
 
         with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
             pickle.dump(self.registered_users, f)
+            pickle.dump(self.bank_logs, f)
 
     def create_user(self, name, initial_deposit):
         new_user = User(name, initial_deposit)
@@ -82,6 +82,15 @@ class Bank:
                 return usr
             else:
                 print("User not registered")
+                return None
+
+    def find_transactions_by_iban(self, iban):
+        for trans in self.bank_logs:
+            if trans.receiver.iban == iban or trans.sender.iban:
+                print("Transactions found")
+                return trans
+            else:
+                print("Transactions not found")
                 return None
 
     def send_money(self, sender, receiver, amount):
