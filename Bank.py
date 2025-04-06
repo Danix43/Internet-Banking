@@ -5,8 +5,9 @@ import pickle
 
 
 class User:
-    def __init__(self, name, initial_balance):
+    def __init__(self, name, password, initial_balance):
         self.name = name
+        self.password = password
         self.balance = initial_balance
         # self.iban = name + str(rnd.random())
         self.iban = name
@@ -69,8 +70,8 @@ class Bank:
             pickle.dump(self.registered_users, f)
             pickle.dump(self.bank_logs, f)
 
-    def create_user(self, name, initial_deposit):
-        new_user = User(name, initial_deposit)
+    def create_user(self, name, password, initial_deposit):
+        new_user = User(name, password, initial_deposit)
         self.registered_users.append(new_user)
         print(f"Made a new account \n {new_user}")
         return new_user
@@ -78,6 +79,15 @@ class Bank:
     def find_user_by_iban(self, iban):
         for usr in self.registered_users:
             if usr.iban == iban:
+                print("User found")
+                return usr
+            else:
+                print("User not registered")
+                return None
+
+    def find_user_by_username(self, username):
+        for usr in self.registered_users:
+            if usr.name == username:
                 print("User found")
                 return usr
             else:
