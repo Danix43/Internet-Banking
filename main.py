@@ -7,6 +7,11 @@ user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
 
 
+def switch_view(view):
+    dpg.configure_item("dashboard_view", show=(view == "dashboard"))
+    dpg.configure_item("settings_view", show=(view == "settings"))
+
+
 def handle_login_callback():
     username = dpg.get_value("username_input")
     password = dpg.get_value("password_input")
@@ -18,6 +23,7 @@ def handle_login_callback():
         dpg.configure_item("status_text", default_value="Login successful!", show=True)
         dpg.configure_item("login_window", show=False)
         show_main_app(username)
+        switch_view("dashboard")  # Show dashboard by default
     else:
         dpg.configure_item(
             "status_text", default_value="Invalid username or password", show=True
@@ -46,6 +52,7 @@ dpg.create_viewport(
 )
 dpg.setup_dearpygui()
 
+# login window
 with dpg.window(
     label="Login",
     tag="login_window",
@@ -64,6 +71,7 @@ with dpg.window(
     dpg.add_button(label="Login", callback=handle_login_callback)
     dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
 
+# main window
 with dpg.window(
     label="Homepage",
     tag="main_window",
@@ -73,9 +81,31 @@ with dpg.window(
     no_close=True,
     no_move=True,
     no_collapse=True,
+    no_title_bar=True,
 ):
-    dpg.add_text("", tag="welcome_text")
-    dpg.add_button(label="Logout", callback=logout_callback)
+    with dpg.menu_bar():
+        with dpg.menu(label="View"):
+            dpg.add_menu_item(
+                label="Dashboard", callback=lambda: switch_view("dashboard")
+            )
+            dpg.add_menu_item(
+                label="Settings", callback=lambda: switch_view("settings")
+            )
+        dpg.add_menu_item(label="Logout", callback=logout_callback)
+
+    # Dashboard view
+    with dpg.child_window(
+        tag="dashboard_view", autosize_x=True, autosize_y=True, border=False
+    ):
+        dpg.add_text("", tag="welcome_text")
+
+    # Settings view
+    with dpg.child_window(
+        tag="settings_view", autosize_x=True, autosize_y=True, show=False, border=False
+    ):
+        dpg.add_text("Settings Panel")
+        dpg.add_input_text(label="Example Setting")
+        dpg.add_button(label="Save Settings")
 
 dpg.show_viewport()
 dpg.start_dearpygui()
