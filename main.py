@@ -5,11 +5,14 @@ bank = Bank()
 
 user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
+bank.send_money(user1, user2, 10)
+bank.send_money(user1, user2, 10)
+bank.send_money(user1, user2, 10)
 
 
 def switch_view(view):
-    dpg.configure_item("dashboard_view", show=(view == "dashboard"))
-    dpg.configure_item("settings_view", show=(view == "settings"))
+    dpg.configure_item("homepage_view", show=(view == "homepage"))
+    dpg.configure_item("send_view", show=(view == "send"))
 
 
 def handle_login_callback():
@@ -22,8 +25,8 @@ def handle_login_callback():
     if user is not None and user.password == password:
         dpg.configure_item("status_text", default_value="Login successful!", show=True)
         dpg.configure_item("login_window", show=False)
-        show_main_app(username)
-        switch_view("dashboard")  # Show dashboard by default
+        show_main_app(user)
+        switch_view("homepage")
     else:
         dpg.configure_item(
             "status_text", default_value="Invalid username or password", show=True
@@ -38,9 +41,21 @@ def logout_callback():
     dpg.configure_item("status_text", default_value="", show=False)
 
 
-def show_main_app(username):
-    dpg.set_value("welcome_text", f"Welcome, {username}!")
+def show_main_app(user):
+    dpg.set_value("welcome_text", f"Welcome, {user.name}!")
     dpg.configure_item("main_window", show=True)
+
+    with dpg.group(parent="homepage_view", horizontal=True, horizontal_spacing=30):
+        with dpg.group():
+            dpg.add_text("Those are your details: ")
+
+            dpg.add_text(f"Balance: {user.balance}")
+            dpg.add_text(f"IBAN: {user.iban}")
+
+        with dpg.group():
+            dpg.add_text("Transactions list:")
+
+            dpg.add_listbox(bank.find_transactions_by_iban(user.iban), num_items=15)
 
 
 dpg.create_context()
@@ -84,28 +99,26 @@ with dpg.window(
     no_title_bar=True,
 ):
     with dpg.menu_bar():
-        with dpg.menu(label="View"):
-            dpg.add_menu_item(
-                label="Dashboard", callback=lambda: switch_view("dashboard")
-            )
-            dpg.add_menu_item(
-                label="Settings", callback=lambda: switch_view("settings")
-            )
+        dpg.add_menu_item(label="Home", callback=lambda: switch_view("homepage"))
+        dpg.add_menu_item(label="Send Money", callback=lambda: switch_view("send"))
         dpg.add_menu_item(label="Logout", callback=logout_callback)
 
-    # Dashboard view
+    # homepage view
     with dpg.child_window(
-        tag="dashboard_view", autosize_x=True, autosize_y=True, border=False
+        tag="homepage_view", autosize_x=True, autosize_y=True, border=False
     ):
         dpg.add_text("", tag="welcome_text")
 
-    # Settings view
+    # send money view
     with dpg.child_window(
-        tag="settings_view", autosize_x=True, autosize_y=True, show=False, border=False
+        tag="send_view",
+        auto_resize_x=True,
+        auto_resize_y=True,
+        show=False,
+        border=False,
     ):
-        dpg.add_text("Settings Panel")
-        dpg.add_input_text(label="Example Setting")
-        dpg.add_button(label="Save Settings")
+        dpg.add_text("Send money")
+
 
 dpg.show_viewport()
 dpg.start_dearpygui()

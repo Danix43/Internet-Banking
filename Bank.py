@@ -95,13 +95,15 @@ class Bank:
                 return None
 
     def find_transactions_by_iban(self, iban):
+        transactions = list()
         for trans in self.bank_logs:
             if trans.receiver.iban == iban or trans.sender.iban:
                 print("Transactions found")
-                return trans
+                transactions.append(trans)
             else:
                 print("Transactions not found")
-                return None
+                return transactions
+        return transactions
 
     def send_money(self, sender, receiver, amount):
         # not enoutf money
