@@ -13,6 +13,8 @@ bank.send_money(user1, user2, 10)
 def switch_view(view):
     dpg.configure_item("homepage_view", show=(view == "homepage"))
     dpg.configure_item("send_view", show=(view == "send"))
+    dpg.configure_item("register_view", show=(view == "register"))
+    dpg.configure_item("login_view", show=(view == "login"))
 
 
 def handle_login_callback():
@@ -31,6 +33,10 @@ def handle_login_callback():
         dpg.configure_item(
             "status_text", default_value="Invalid username or password", show=True
         )
+
+
+def handle_register_callback():
+    pass
 
 
 def logout_callback():
@@ -76,15 +82,39 @@ with dpg.window(
     no_close=True,
     no_move=True,
     no_collapse=True,
+    no_title_bar=True,
 ):
-    dpg.add_text("Username")
-    dpg.add_input_text(tag="username_input")
+    with dpg.menu_bar():
+        dpg.add_menu_item(label="Login", callback=lambda: switch_view("login"))
+        dpg.add_menu_item(label="Register", callback=lambda: switch_view("register"))
 
-    dpg.add_text("Password")
-    dpg.add_input_text(tag="password_input", password=True)
+    with dpg.child_window(
+        tag="login_view", autosize_x=True, autosize_y=True, border=False
+    ):
+        dpg.add_text("Username")
+        dpg.add_input_text(tag="username_input")
 
-    dpg.add_button(label="Login", callback=handle_login_callback)
-    dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
+        dpg.add_text("Password")
+        dpg.add_input_text(tag="password_input", password=True)
+
+        dpg.add_button(label="Login", callback=handle_login_callback)
+        dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
+
+    with dpg.child_window(
+        tag="register_view", autosize_x=True, autosize_y=True, border=False, show=False
+    ):
+        dpg.add_text("Username")
+        dpg.add_input_text(tag="register_username_input")
+
+        dpg.add_text("Password")
+        dpg.add_input_text(tag="register_password_input", password=True)
+
+        dpg.add_text("Re Enter Password")
+        dpg.add_input_text(tag="register_reenter_password_input", password=True)
+
+        dpg.add_button(label="Register", callback=handle_register_callback)
+        # dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
+
 
 # main window
 with dpg.window(
