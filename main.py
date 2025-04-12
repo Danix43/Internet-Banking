@@ -6,8 +6,14 @@ bank = Bank()
 user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
 bank.send_money(user1, user2, 10)
-bank.send_money(user1, user2, 10)
-bank.send_money(user1, user2, 10)
+bank.send_money(user1, user2, 20)
+bank.send_money(user2, user1, 10)
+
+
+def set_user(user):
+    dpg.set_value("user_name", user.name)
+    dpg.set_value("user_iban", user.iban)
+    dpg.set_value("user_balance", user.balance)
 
 
 def switch_view(view):
@@ -22,12 +28,15 @@ def handle_login_callback():
     password = dpg.get_value("password_input")
 
     # find user by username
-    user = bank.find_user_by_username(username)
+    user = bank.find_user_by_username(dpg.get_value("username_input"))
+    print(f"find user query: {dpg.get_value("username_input")}")
+    print(f"{user}")
 
     if user is not None and user.password == password:
         dpg.configure_item("status_text", default_value="Login successful!", show=True)
         dpg.configure_item("login_window", show=False)
-        show_main_app(user)
+        set_user(user)
+        show_main_app()
         switch_view("homepage")
     else:
         dpg.configure_item(
@@ -36,7 +45,25 @@ def handle_login_callback():
 
 
 def handle_register_callback():
-    pass
+    username = dpg.get_value("register_username_input")
+    password = dpg.get_value("register_username_input")
+    initial_deposit = dpg.get_value("register_initial_deposit")
+
+    if bank.find_user_by_username(username):
+        print("user already exists")
+
+    else:
+        print("need to register")
+        new_user = bank.create_user(
+            username, password, initial_deposit if initial_deposit != None else 0.00
+        )
+
+        print(bank.registered_users)
+
+        dpg.configure_item("login_window", show=False)
+        set_user(new_user)
+        show_main_app()
+        switch_view("homepage")
 
 
 def logout_callback():
@@ -47,21 +74,20 @@ def logout_callback():
     dpg.configure_item("status_text", default_value="", show=False)
 
 
-def show_main_app(user):
-    dpg.set_value("welcome_text", f"Welcome, {user.name}!")
+def show_main_app():
+    dpg.set_value("welcome_text", f"Welcome, {dpg.get_value("user_name")}!")
     dpg.configure_item("main_window", show=True)
 
     with dpg.group(parent="homepage_view", horizontal=True, horizontal_spacing=30):
-        with dpg.group():
-            dpg.add_text("Those are your details: ")
+        dpg.set_value("balance_text", f"Balance: {dpg.get_value("user_balance")}")
+        dpg.set_value("iban_text", f"IBAN: {dpg.get_value("user_iban")}")
 
-            dpg.add_text(f"Balance: {user.balance}")
-            dpg.add_text(f"IBAN: {user.iban}")
+        dpg.set_value("details_text", "Transactions list:")
 
-        with dpg.group():
-            dpg.add_text("Transactions list:")
-
-            dpg.add_listbox(bank.find_transactions_by_iban(user.iban), num_items=15)
+        dpg.configure_item(
+            "transactions_list",
+            items=bank.find_transactions_by_iban(dpg.get_value("user_iban")),
+        )
 
 
 dpg.create_context()
@@ -72,6 +98,12 @@ dpg.create_viewport(
     resizable=False,
 )
 dpg.setup_dearpygui()
+
+with dpg.value_registry():
+    dpg.add_string_value(tag="user_name")
+    dpg.add_string_value(tag="user_iban")
+    dpg.add_double_value(tag="user_balance")
+    dpg.add_string_value(tag="user_password")
 
 # login window
 with dpg.window(
@@ -107,10 +139,10 @@ with dpg.window(
         dpg.add_input_text(tag="register_username_input")
 
         dpg.add_text("Password")
-        dpg.add_input_text(tag="register_password_input", password=True)
+        dpg.add_input_text(tag="register_password_input", password=False)
 
-        dpg.add_text("Re Enter Password")
-        dpg.add_input_text(tag="register_reenter_password_input", password=True)
+        dpg.add_text("Initial Deposit")
+        dpg.add_input_double(tag="register_initial_balance")
 
         dpg.add_button(label="Register", callback=handle_register_callback)
         # dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
@@ -137,7 +169,17 @@ with dpg.window(
     with dpg.child_window(
         tag="homepage_view", autosize_x=True, autosize_y=True, border=False
     ):
-        dpg.add_text("", tag="welcome_text")
+
+        with dpg.group(parent="homepage_view", horizontal=True, horizontal_spacing=30):
+            with dpg.group():
+                dpg.add_text("Those are your details: ")
+                dpg.add_text("", tag="welcome_text")
+                dpg.add_text("", tag="balance_text")
+                dpg.add_text("", tag="iban_text")
+
+            with dpg.group():
+                dpg.add_text("", tag="details_text")
+                dpg.add_listbox([], tag="transactions_list", num_items=15)
 
     # send money view
     with dpg.child_window(

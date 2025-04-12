@@ -26,6 +26,9 @@ class User:
     def add_transaction(self, transaction):
         self.set_logs((*self.get_logs(), transaction))
 
+    def get_name(self):
+        return self.name
+
     def export_acc(self):
         return {
             self.iban,
@@ -86,23 +89,27 @@ class Bank:
                 return None
 
     def find_user_by_username(self, username):
+        # for usr in self.registered_users:
+        #     if username == usr.name:
+        #         print("User found")
+        #         return usr
+        #     else:
+        #         print("User not found in bank")
+        #         return None
+
         for usr in self.registered_users:
-            if usr.name == username:
-                print("User found")
+            if str(usr.get_name()) == str(username):
                 return usr
             else:
-                print("User not registered")
                 return None
 
     def find_transactions_by_iban(self, iban):
         transactions = list()
-        for trans in self.bank_logs:
-            if trans.receiver.iban == iban or trans.sender.iban:
-                print("Transactions found")
-                transactions.append(trans)
-            else:
-                print("Transactions not found")
-                return transactions
+
+        for tran in self.bank_logs:
+            if tran.receiver.iban == iban:
+                transactions.append(tran)
+
         return transactions
 
     def send_money(self, sender, receiver, amount):
