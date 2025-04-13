@@ -26,9 +26,6 @@ class User:
     def add_transaction(self, transaction):
         self.set_logs((*self.get_logs(), transaction))
 
-    def get_name(self):
-        return self.name
-
     def export_acc(self):
         return {
             self.iban,
@@ -36,7 +33,8 @@ class User:
         }
 
     def __str__(self):
-        return f"This is {self.name} \n Details: \n Current balance: {self.balance} \n IBAN: {self.iban}"
+        # return f"This is {self.name} \n Details: \n Current balance: {self.balance} \n IBAN: {self.iban} \n Password: {self.password}"
+        return f"user: {self.name}"
 
 
 class Transaction:
@@ -52,7 +50,7 @@ class Transaction:
 
 class Bank:
     def __init__(self):
-        self.registered_users = []
+        self.registered_users = list()
         self.bank_logs = []
 
     def retrieve_data(self, path_to_file):
@@ -76,7 +74,6 @@ class Bank:
     def create_user(self, name, password, initial_deposit):
         new_user = User(name, password, initial_deposit)
         self.registered_users.append(new_user)
-        print(f"Made a new account \n {new_user}")
         return new_user
 
     def find_user_by_iban(self, iban):
@@ -89,19 +86,16 @@ class Bank:
                 return None
 
     def find_user_by_username(self, username):
-        # for usr in self.registered_users:
-        #     if username == usr.name:
-        #         print("User found")
-        #         return usr
-        #     else:
-        #         print("User not found in bank")
-        #         return None
-
+        print(f"find user query: {username}")
         for usr in self.registered_users:
-            if str(usr.get_name()) == str(username):
+            if usr.name == username:
+                print("found user")
+                print(usr)
                 return usr
-            else:
-                return None
+            # else:
+            #     print("user not found")
+            #     print(usr)
+            #     return None
 
     def find_transactions_by_iban(self, iban):
         transactions = list()

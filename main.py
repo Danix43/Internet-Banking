@@ -5,15 +5,21 @@ bank = Bank()
 
 user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
+
 bank.send_money(user1, user2, 10)
 bank.send_money(user1, user2, 20)
 bank.send_money(user2, user1, 10)
 
 
 def set_user(user):
-    dpg.set_value("user_name", user.name)
-    dpg.set_value("user_iban", user.iban)
-    dpg.set_value("user_balance", user.balance)
+    if user == None:
+        dpg.set_value("user_name", "")
+        dpg.set_value("user_iban", "")
+        dpg.set_value("user_balance", 0.00)
+    else:
+        dpg.set_value("user_name", user.name)
+        dpg.set_value("user_iban", user.iban)
+        dpg.set_value("user_balance", user.balance)
 
 
 def switch_view(view):
@@ -31,6 +37,7 @@ def handle_login_callback():
     user = bank.find_user_by_username(dpg.get_value("username_input"))
     print(f"find user query: {dpg.get_value("username_input")}")
     print(f"{user}")
+    print(f"{user.password}")
 
     if user is not None and user.password == password:
         dpg.configure_item("status_text", default_value="Login successful!", show=True)
@@ -46,7 +53,7 @@ def handle_login_callback():
 
 def handle_register_callback():
     username = dpg.get_value("register_username_input")
-    password = dpg.get_value("register_username_input")
+    password = dpg.get_value("register_password_input")
     initial_deposit = dpg.get_value("register_initial_deposit")
 
     if bank.find_user_by_username(username):
@@ -58,8 +65,6 @@ def handle_register_callback():
             username, password, initial_deposit if initial_deposit != None else 0.00
         )
 
-        print(bank.registered_users)
-
         dpg.configure_item("login_window", show=False)
         set_user(new_user)
         show_main_app()
@@ -69,9 +74,11 @@ def handle_register_callback():
 def logout_callback():
     dpg.configure_item("main_window", show=False)
     dpg.configure_item("login_window", show=True)
+    dpg.configure_item("login_view", show=True)
     dpg.set_value("username_input", "")
     dpg.set_value("password_input", "")
     dpg.configure_item("status_text", default_value="", show=False)
+    set_user(None)
 
 
 def show_main_app():
@@ -129,7 +136,10 @@ with dpg.window(
         dpg.add_text("Password")
         dpg.add_input_text(tag="password_input", password=True)
 
-        dpg.add_button(label="Login", callback=handle_login_callback)
+        dpg.add_button(
+            label="Login",
+            callback=handle_login_callback,
+        )
         dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
 
     with dpg.child_window(
