@@ -79,23 +79,12 @@ class Bank:
     def find_user_by_iban(self, iban):
         for usr in self.registered_users:
             if usr.iban == iban:
-                print("User found")
                 return usr
-            else:
-                print("User not registered")
-                return None
 
     def find_user_by_username(self, username):
-        print(f"find user query: {username}")
         for usr in self.registered_users:
             if usr.name == username:
-                print("found user")
-                print(usr)
                 return usr
-            # else:
-            #     print("user not found")
-            #     print(usr)
-            #     return None
 
     def find_transactions_by_iban(self, iban):
         transactions = list()
@@ -106,10 +95,20 @@ class Bank:
 
         return transactions
 
-    def send_money(self, sender, receiver, amount):
+    def send_money(self, sender_iban, receiver_iban, amount):
+        sender = self.find_user_by_iban(sender_iban)
+        receiver = self.find_user_by_iban(receiver_iban)
+
+        if receiver == None:
+            print("the account doesn't exists")
+            return False
         # not enoutf money
         if sender.balance < amount:
             print("Not enouth money")
+            return False
+        elif sender == receiver:
+            print("can't send money to self")
+            return False
         else:
             # enoutg money
             receiver.balance += amount
@@ -118,6 +117,7 @@ class Bank:
             self.bank_logs.append(trans)
             sender.add_transaction(trans)
             receiver.add_transaction(trans)
+            return True
 
     def print_bank_logs(self):
         for log in self.bank_logs:

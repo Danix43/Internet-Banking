@@ -6,9 +6,12 @@ bank = Bank()
 user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
 
-bank.send_money(user1, user2, 10)
-bank.send_money(user1, user2, 20)
-bank.send_money(user2, user1, 10)
+for usr in bank.registered_users:
+    print(usr)
+
+bank.send_money("user1", "user2", 10)
+bank.send_money("user1", "user2", 20)
+bank.send_money("user2", "user1", 10)
 
 
 def set_user(user):
@@ -34,10 +37,7 @@ def handle_login_callback():
     password = dpg.get_value("password_input")
 
     # find user by username
-    user = bank.find_user_by_username(dpg.get_value("username_input"))
-    print(f"find user query: {dpg.get_value("username_input")}")
-    print(f"{user}")
-    print(f"{user.password}")
+    user = bank.find_user_by_username(username)
 
     if user is not None and user.password == password:
         dpg.configure_item("status_text", default_value="Login successful!", show=True)
@@ -79,6 +79,40 @@ def logout_callback():
     dpg.set_value("password_input", "")
     dpg.configure_item("status_text", default_value="", show=False)
     set_user(None)
+
+
+def send_money_callback():
+    receiver_iban = dpg.get_value("send_receiver_iban")
+    sender_iban = dpg.get_value("user_iban")
+    transfer_amount = dpg.get_value("send_amount")
+
+    checkbox_confirm = dpg.get_value("send_money_checkbox")
+
+    if checkbox_confirm:
+        # checkbox ticked, check transfer details
+        if transfer_amount > 0.00:
+            bank.send_money(sender_iban, receiver_iban, transfer_amount)
+            dpg.configure_item(
+                "send_status_text",
+                default_value="Transfer send",
+                show=True,
+                color=[0, 255, 0],
+            )
+        else:
+            dpg.configure_item(
+                "send_status_text", default_value="Can't send less that 0", show=True
+            )
+    else:
+        dpg.configure_item(
+            "send_status_text", default_value="Details not confirmed", show=True
+        )
+
+
+def refresh_trans_callback():
+    dpg.configure_item(
+        "transactions_list",
+        items=bank.find_transactions_by_iban(dpg.get_value("user_iban")),
+    )
 
 
 def show_main_app():
@@ -190,6 +224,11 @@ with dpg.window(
             with dpg.group():
                 dpg.add_text("", tag="details_text")
                 dpg.add_listbox([], tag="transactions_list", num_items=15)
+                dpg.add_button(
+                    label="Refresh transactions",
+                    tag="refresh_trans_button",
+                    callback=refresh_trans_callback,
+                )
 
     # send money view
     with dpg.child_window(
@@ -199,8 +238,20 @@ with dpg.window(
         show=False,
         border=False,
     ):
-        dpg.add_text("Send money")
+        dpg.add_text("You can send money to another account from here: ")
 
+        dpg.add_text("Receiver IBAN: ")
+        dpg.add_input_text(tag="send_receiver_iban")
+
+        dpg.add_text("Amount: ")
+        dpg.add_input_double(tag="send_amount")
+
+        dpg.add_text("Double check your details")
+        dpg.add_checkbox(label="Details checked", tag="send_money_checkbox")
+
+        dpg.add_button(label="Send", callback=send_money_callback)
+
+        dpg.add_text("", tag="send_status_text", color=[255, 0, 0], show=False)
 
 dpg.show_viewport()
 dpg.start_dearpygui()
