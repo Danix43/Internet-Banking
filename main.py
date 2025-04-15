@@ -178,10 +178,10 @@ with dpg.window(
         dpg.add_input_text(tag="register_username_input")
 
         dpg.add_text("Password")
-        dpg.add_input_text(tag="register_password_input", password=False)
+        dpg.add_input_text(tag="register_password_input", password=True)
 
         dpg.add_text("Initial Deposit")
-        dpg.add_input_double(tag="register_initial_balance")
+        dpg.add_input_double(tag="register_initial_deposit")
 
         dpg.add_button(label="Register", callback=handle_register_callback)
         # dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
