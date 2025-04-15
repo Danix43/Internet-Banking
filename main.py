@@ -3,15 +3,12 @@ from Bank import Bank
 
 bank = Bank()
 
-user1 = bank.create_user("user1", "password", 50)
-user2 = bank.create_user("user2", "password", 20)
+# user1 = bank.create_user("user1", "password", 50)
+# user2 = bank.create_user("user2", "password", 20)
 
-for usr in bank.registered_users:
-    print(usr)
-
-bank.send_money("user1", "user2", 10)
-bank.send_money("user1", "user2", 20)
-bank.send_money("user2", "user1", 10)
+# bank.send_money("user1", "user2", 10)
+# bank.send_money("user1", "user2", 20)
+# bank.send_money("user2", "user1", 10)
 
 
 def set_user(user):
@@ -90,18 +87,16 @@ def send_money_callback():
 
     if checkbox_confirm:
         # checkbox ticked, check transfer details
-        if transfer_amount > 0.00:
-            bank.send_money(sender_iban, receiver_iban, transfer_amount)
+        result, message = bank.send_money(sender_iban, receiver_iban, transfer_amount)
+        if result:
             dpg.configure_item(
                 "send_status_text",
-                default_value="Transfer send",
+                default_value=message,
                 show=True,
                 color=[0, 255, 0],
             )
         else:
-            dpg.configure_item(
-                "send_status_text", default_value="Can't send less that 0", show=True
-            )
+            dpg.configure_item("send_status_text", default_value=message, show=True)
     else:
         dpg.configure_item(
             "send_status_text", default_value="Details not confirmed", show=True
@@ -256,3 +251,4 @@ with dpg.window(
 dpg.show_viewport()
 dpg.start_dearpygui()
 dpg.destroy_context()
+bank.save_data()

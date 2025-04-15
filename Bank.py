@@ -53,23 +53,30 @@ class Bank:
         self.registered_users = list()
         self.bank_logs = []
 
-    def retrieve_data(self, path_to_file):
+        self.retrieve_data()
+
+    def retrieve_data(self, path_to_file="bank storage/"):
         """
         Should read the csv file that contains the user informations and load them into registered users list
         """
-        with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
-            self.registered_users = pickle.load(f)
-            self.bank_logs = pickle.load(f)
-
-    def save_data(self, path_to_file):
         try:
-            os.makedirs(path_to_file)
-        except OSError:
-            print("The data directory already exists")
+            with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
+                self.registered_users = pickle.load(f)
+                self.bank_logs = pickle.load(f)
+        except FileNotFoundError:
+            print("the save data file doesn't exist")
+            self.save_data()
 
-        with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
-            pickle.dump(self.registered_users, f)
-            pickle.dump(self.bank_logs, f)
+    def save_data(self, path_to_file="bank storage/"):
+        try:
+            os.makedirs(path_to_file, exist_ok=True)
+            with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
+                pickle.dump(self.registered_users, f)
+                pickle.dump(self.bank_logs, f)
+        except FileNotFoundError as err:
+            print(f"the bank data doesn't exist\n error:{err}")
+        except OSError as err:
+            print(f"The data directory already exists\n error:{err}")
 
     def create_user(self, name, password, initial_deposit):
         new_user = User(name, password, initial_deposit)
@@ -100,15 +107,14 @@ class Bank:
         receiver = self.find_user_by_iban(receiver_iban)
 
         if receiver == None:
-            print("the account doesn't exists")
-            return False
+            return False, "the account doesn't exist"
         # not enoutf money
         if sender.balance < amount:
-            print("Not enouth money")
-            return False
+            return False, "not enough money to send"
         elif sender == receiver:
-            print("can't send money to self")
-            return False
+            return False, "can't send money to self"
+        elif amount <= 0.00:
+            return False, "can't send negative money"
         else:
             # enoutg money
             receiver.balance += amount
@@ -117,7 +123,7 @@ class Bank:
             self.bank_logs.append(trans)
             sender.add_transaction(trans)
             receiver.add_transaction(trans)
-            return True
+            return True, "Transfer done"
 
     def print_bank_logs(self):
         for log in self.bank_logs:
