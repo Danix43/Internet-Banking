@@ -97,7 +97,7 @@ class Bank:
         transactions = list()
 
         for tran in self.bank_logs:
-            if tran.receiver.iban == iban:
+            if tran.sender.iban == iban:
                 transactions.append(tran)
 
         return transactions

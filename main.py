@@ -28,6 +28,11 @@ def switch_view(view):
     dpg.configure_item("register_view", show=(view == "register"))
     dpg.configure_item("login_view", show=(view == "login"))
 
+    dpg.configure_item(
+        "transactions_list",
+        items=bank.find_transactions_by_iban(dpg.get_value("user_iban")),
+    )
+
 
 def handle_login_callback():
     username = dpg.get_value("username_input")
