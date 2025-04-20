@@ -3,18 +3,22 @@ from Bank import Bank
 
 bank = Bank()
 
+# conturi de test
 user1 = bank.create_user("user1", "password", 50)
 user2 = bank.create_user("user2", "password", 20)
-
-for usr in bank.registered_users:
-    print(usr)
-
+# tranzactii de test
 bank.send_money("user1", "user2", 10)
 bank.send_money("user1", "user2", 20)
 bank.send_money("user2", "user1", 10)
 
 
 def set_user(user):
+    """
+    Actualizează valorile interfeței grafice în funcție de utilizatorul autentificat.
+
+    Args:
+        user (User | None): Utilizatorul curent sau None pentru resetare.
+    """
     if user == None:
         dpg.set_value("user_name", "")
         dpg.set_value("user_iban", "")
@@ -26,6 +30,12 @@ def set_user(user):
 
 
 def switch_view(view):
+    """
+    Afișează doar fereastra activă din aplicație.
+
+    Args:
+        view (str): Numele ferestrei active ("homepage", "send", "register", "login").
+    """
     dpg.configure_item("homepage_view", show=(view == "homepage"))
     dpg.configure_item("send_view", show=(view == "send"))
     dpg.configure_item("register_view", show=(view == "register"))
@@ -33,10 +43,12 @@ def switch_view(view):
 
 
 def handle_login_callback():
+    """
+    Verifică credențialele de autentificare și comută la aplicația principală dacă autentificarea reușește.
+    """
     username = dpg.get_value("username_input")
     password = dpg.get_value("password_input")
 
-    # find user by username
     user = bank.find_user_by_username(username)
 
     if user is not None and user.password == password:
@@ -52,6 +64,9 @@ def handle_login_callback():
 
 
 def handle_register_callback():
+    """
+    Înregistrează un nou utilizator și îl conectează în aplicație dacă username-ul este disponibil.
+    """
     username = dpg.get_value("register_username_input")
     password = dpg.get_value("register_password_input")
     initial_deposit = dpg.get_value("register_initial_deposit")
@@ -72,6 +87,9 @@ def handle_register_callback():
 
 
 def logout_callback():
+    """
+    Deconectează utilizatorul curent și revine la fereastra de autentificare.
+    """
     dpg.configure_item("main_window", show=False)
     dpg.configure_item("login_window", show=True)
     dpg.configure_item("login_view", show=True)
@@ -82,6 +100,9 @@ def logout_callback():
 
 
 def send_money_callback():
+    """
+    Gestionează logica de transfer de bani între conturi, cu validare interfeței.
+    """
     receiver_iban = dpg.get_value("send_receiver_iban")
     sender_iban = dpg.get_value("user_iban")
     transfer_amount = dpg.get_value("send_amount")
@@ -109,6 +130,9 @@ def send_money_callback():
 
 
 def refresh_trans_callback():
+    """
+    Actualizează lista de tranzacții pentru utilizatorul curent.
+    """
     dpg.configure_item(
         "transactions_list",
         items=bank.find_transactions_by_iban(dpg.get_value("user_iban")),
@@ -116,6 +140,9 @@ def refresh_trans_callback():
 
 
 def show_main_app():
+    """
+    Configurează și afișează aplicația principală după autentificare.
+    """
     dpg.set_value("welcome_text", f"Welcome, {dpg.get_value("user_name")}!")
     dpg.configure_item("main_window", show=True)
 
@@ -131,6 +158,9 @@ def show_main_app():
         )
 
 
+"""
+--------------- Componente grafice ---------------
+"""
 dpg.create_context()
 dpg.create_viewport(
     title="Internet Banking",
@@ -146,7 +176,9 @@ with dpg.value_registry():
     dpg.add_double_value(tag="user_balance")
     dpg.add_string_value(tag="user_password")
 
-# login window
+"""
+Fereastra de autentificare și înregistrare
+"""
 with dpg.window(
     label="Login",
     tag="login_window",
@@ -191,8 +223,10 @@ with dpg.window(
         dpg.add_button(label="Register", callback=handle_register_callback)
         # dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
 
-
-# main window
+"""
+Fereastra principala a aplicatiei 
+"""
+# homepage view
 with dpg.window(
     label="Homepage",
     tag="main_window",
@@ -253,6 +287,9 @@ with dpg.window(
 
         dpg.add_text("", tag="send_status_text", color=[255, 0, 0], show=False)
 
+"""
+Startul main-loop-ului al aplicatiei grafice
+"""
 dpg.show_viewport()
 dpg.start_dearpygui()
 dpg.destroy_context()
