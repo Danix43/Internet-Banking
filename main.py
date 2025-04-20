@@ -41,6 +41,11 @@ def switch_view(view):
     dpg.configure_item("register_view", show=(view == "register"))
     dpg.configure_item("login_view", show=(view == "login"))
 
+    dpg.configure_item(
+        "transactions_list",
+        items=bank.find_transactions_by_iban(dpg.get_value("user_iban")),
+    )
+
 
 def handle_login_callback():
     """
@@ -111,18 +116,16 @@ def send_money_callback():
 
     if checkbox_confirm:
         # checkbox ticked, check transfer details
-        if transfer_amount > 0.00:
-            bank.send_money(sender_iban, receiver_iban, transfer_amount)
+        result, message = bank.send_money(sender_iban, receiver_iban, transfer_amount)
+        if result:
             dpg.configure_item(
                 "send_status_text",
-                default_value="Transfer send",
+                default_value=message,
                 show=True,
                 color=[0, 255, 0],
             )
         else:
-            dpg.configure_item(
-                "send_status_text", default_value="Can't send less that 0", show=True
-            )
+            dpg.configure_item("send_status_text", default_value=message, show=True)
     else:
         dpg.configure_item(
             "send_status_text", default_value="Details not confirmed", show=True
@@ -215,10 +218,10 @@ with dpg.window(
         dpg.add_input_text(tag="register_username_input")
 
         dpg.add_text("Password")
-        dpg.add_input_text(tag="register_password_input", password=False)
+        dpg.add_input_text(tag="register_password_input", password=True)
 
         dpg.add_text("Initial Deposit")
-        dpg.add_input_double(tag="register_initial_balance")
+        dpg.add_input_double(tag="register_initial_deposit")
 
         dpg.add_button(label="Register", callback=handle_register_callback)
         # dpg.add_text("", tag="status_text", color=[255, 0, 0], show=False)
@@ -293,3 +296,4 @@ Startul main-loop-ului al aplicatiei grafice
 dpg.show_viewport()
 dpg.start_dearpygui()
 dpg.destroy_context()
+bank.save_data()

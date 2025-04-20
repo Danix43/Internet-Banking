@@ -143,18 +143,24 @@ class Bank:
         self.registered_users = []
         self.bank_logs = []
 
-    def retrieve_data(self, path_to_file):
+        self.retrieve_data()
+
+    def retrieve_data(self, path_to_file="bank storage/"):
         """
         Încarcă datele utilizatorilor și ale tranzacțiilor din fișier.
 
         Args:
             path_to_file (str): Calea către directorul cu fișierul `bankDetails.txt`.
         """
-        with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
-            self.registered_users = pickle.load(f)
-            self.bank_logs = pickle.load(f)
+        try:
+            with open(f"{path_to_file}/bankDetails.txt", "rb") as f:
+                self.registered_users = pickle.load(f)
+                self.bank_logs = pickle.load(f)
+        except FileNotFoundError:
+            print("the save data file doesn't exist")
+            self.save_data()
 
-    def save_data(self, path_to_file):
+    def save_data(self, path_to_file="bank storage/"):
         """
         Salvează datele utilizatorilor și ale tranzacțiilor in fișier.
 
@@ -162,13 +168,14 @@ class Bank:
             path_to_file (str): Calea către directorul în care se salvează datele.
         """
         try:
-            os.makedirs(path_to_file)
-        except OSError:
-            print("The data directory already exists")
-
-        with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
-            pickle.dump(self.registered_users, f)
-            pickle.dump(self.bank_logs, f)
+            os.makedirs(path_to_file, exist_ok=True)
+            with open(f"{path_to_file}/bankDetails.txt", "wb") as f:
+                pickle.dump(self.registered_users, f)
+                pickle.dump(self.bank_logs, f)
+        except FileNotFoundError as err:
+            print(f"the bank data doesn't exist\n error:{err}")
+        except OSError as err:
+            print(f"The data directory already exists\n error:{err}")
 
     def create_user(self, name, password, initial_deposit):
         """
@@ -229,7 +236,7 @@ class Bank:
         transactions = list()
 
         for tran in self.bank_logs:
-            if tran.receiver.iban == iban:
+            if tran.sender.iban == iban:
                 transactions.append(tran)
 
         return transactions
@@ -250,15 +257,14 @@ class Bank:
         receiver = self.find_user_by_iban(receiver_iban)
 
         if receiver == None:
-            print("the account doesn't exists")
-            return False
+            return False, "the account doesn't exist"
         # not enoutf money
         if sender.balance < amount:
-            print("Not enouth money")
-            return False
+            return False, "not enough money to send"
         elif sender == receiver:
-            print("can't send money to self")
-            return False
+            return False, "can't send money to self"
+        elif amount <= 0.00:
+            return False, "can't send negative money"
         else:
             # enoutg money
             receiver.balance += amount
@@ -267,7 +273,7 @@ class Bank:
             self.bank_logs.append(trans)
             sender.add_transaction(trans)
             receiver.add_transaction(trans)
-            return True
+            return True, "Transfer done"
 
     def _print_bank_logs(self):
         """
